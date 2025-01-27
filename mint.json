@@ -15,9 +15,12 @@
     }
   },
   "tabs": [
+
+  ],
+  "redirects": [
     {
-      "name": "Documentation",
-      "url": "documentation"
+      "source": "/",
+      "destination": "/core/installation"
     }
   ],
   "anchors": [
@@ -39,7 +42,8 @@
         "core/installation",
         "core/env",
         "core/configuration",
-        "core/krun"
+        "core/krun",
+        "core/kstep"
       ]
     }
   ],

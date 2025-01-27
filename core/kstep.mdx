@@ -1,0 +1,158 @@
+---
+title: 'kStep'
+description: 'A node that that represents a single step in a run.'
+icon: 'code'
+---
+
+## Properties
+
+<ResponseField name="stepName" type="string" required>
+Name that will be used to represent the node inside the run.
+
+Example: `"Transaction.validate"`
+
+</ResponseField>
+
+## Decorator
+
+You can use the `@kStep` decorator to wrap your class methods. This will ensure that as long as it's preceded by a `kRun`, it will show up as a step in the run.
+
+<CodeGroup>
+
+```typescript Typescript
+import { kRun, kStep } from "kimtrace";
+
+class TransactionProcessor {
+    @kRun({runName: "Transaction.process"})
+    public static async processTransaction(params:  {amount: number, type: string, account_id: string}) {
+        // ... code here
+        await TransactionProcessor.validateTransaction({amount: params.amount, type: params.type, account_id: params.account_id});
+    }
+
+    @kStep({stepName: "Transaction.validate"})
+    public static async validateTransaction(params:  {amount: number, type: string, account_id: string}) {
+        // ... code here
+    }
+}
+```
+
+```python Python
+from kimtrace import KRunParams, KStepParams, kRun, kStep
+
+class TransactionProcessor:
+    @staticmethod
+    @kRun(KRunParams(run_name="Transaction.process"))
+    async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+        # ... code here
+        await TransactionProcessor.validateTransaction(amount, type_, account_id)
+
+    @staticmethod
+    @kStep(KStepParams(step_name="Transaction.validate"))
+    async def validateTransaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+        # ... code here
+```
+
+</CodeGroup>
+
+## Wrapper
+
+You can use `kStepWrapper` to wrap your function calls and defer the execution until a later time. At any point you call this wrapped function, it will be traced.
+
+<CodeGroup>
+
+```typescript Typescript
+import { kRunWrapper, kStepWrapper } from "kimtrace";
+
+async function run() {
+    const wrappedCall = kRunWrapper({runName: "Transaction.process"}, processTransaction);
+    return await wrappedCall({amount: 3, type: "deposit", account_id: "123"});
+}
+
+async function processTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+    const wrappedFunc = kStepWrapper({stepName: "Transaction.validate"}, validateTransaction, params);
+}
+
+async function validateTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+}
+```
+
+```python Python
+from kimtrace import KRunParams, kRunWrapper, kStepWrapper
+
+async def main() -> Dict[str, Any]:
+    wrapped_fn = krun_wrapper(
+        KRunParams(run_name="Transaction.process"),
+        process_transaction
+    )
+    return await wrapped_fn(amount=3, type_="deposit", account_id="123")
+
+async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+    const wrapped_fn = kstep_wrapper({stepName: "Transaction.validate"}, validateTransaction, amount, type_, account_id);
+
+async def validateTransaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+```
+
+</CodeGroup>
+
+## Wrapped Call
+
+You can use `kStepWrappedCall` to wrap your function and immediately execute it with tracing enabled.
+
+<Note>
+For `python`, there's `kstep_wrapped_call` and `async_kstep_wrapped_call`. Please make sure to use the `async` version if you're using `async` functions.
+</Note>
+
+<CodeGroup>
+
+```typescript Typescript
+import { kStepWrappedCall, kRunWrappedCall } from "kimtrace";
+
+async function run() {
+    return await kRunWrappedCall(
+        {runName: "Transaction.process"}, 
+        processTransaction,
+        {amount: 3, type: "deposit", account_id: "123"}
+    );
+}
+
+async function processTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+    await kStepWrappedCall({stepName: "Transaction.validate"}, validateTransaction, params);
+}
+
+async function validateTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+}
+```
+
+```python Python
+from kimtrace import KRunParams, async_kstep_wrapped_call, KStepParams, async_krun_wrapped_call
+
+async def main() -> Dict[str, Any]:
+    return await async_krun_wrapped_call(
+        KRunParams(run_name="Transaction.process"),
+        process_transaction,
+        amount=3,
+        type_="deposit",
+        account_id="123"
+    )
+
+async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+    await async_kstep_wrapped_call(
+        KStepParams(step_name="Transaction.validate"),
+        validate_transaction,
+        amount,
+        type_,
+        account_id
+    )
+
+async def validate_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+```
+
+</CodeGroup>
