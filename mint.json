@@ -4,6 +4,16 @@
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
+  "topbarCtaButton": {
+    "name": "KimTrace",
+    "url": "https://kimtrace.dev"
+  },
+  "topbarLinks": [
+    {
+      "name": "Discord",
+      "url": "https://discord.gg/fYAZhYA7BD"
+    }
+  ],
   "favicon": "/favicon.png",
   "colors": {
     "primary": "#0D9373",
@@ -21,18 +31,6 @@
     {
       "source": "/",
       "destination": "/core/installation"
-    }
-  ],
-  "anchors": [
-    {
-      "name": "KimTrace",
-      "icon": "building",
-      "url": "https://kimtrace.dev"
-    },
-    {
-      "name": "Discord",
-      "icon": "discord",
-      "url": "https://discord.gg/fYAZhYA7BD"
     }
   ],
   "navigation": [
