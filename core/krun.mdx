@@ -1,0 +1,144 @@
+---
+title: 'kRun'
+description: 'A top-level wrapper construct used primarily as an entrypoint for tracing. All subsequent kSteps should be preceded by **at most** one kRun at some point of execution.'
+icon: 'code'
+---
+
+## Properties
+
+<ResponseField name="runName" type="string" required>
+Name of the run that will be used to identify which use-case the run belongs to.
+
+Example: `"Transaction.process"`
+
+</ResponseField>
+
+<ResponseField name="runId" type="string">
+Unique identifier for the run. If not provided, a random UUID will be generated. Set this if you want to associate a run with an upstream identifier like a `requestId`. That way, you can quickly query for runs based on `requestId` from KimTrace.
+
+</ResponseField>
+
+<ResponseField name="tags" type="string[]">
+Parameters that are part of the `kRun` function/method that you want to tag the value of. You will then be able to filter your runs based on these tags.
+
+Example: `["userId"]`
+
+</ResponseField>
+
+<ResponseField name="redactors" type="string[]">
+Values associated with these parameters will be `[REDACTED]` from the result emitted to KimTrace. Useful for redacting sensitive information that you dont' want stored with your traces.
+
+Example: `["secretKey"]`
+
+</ResponseField>
+
+<ResponseField name="emitOnlyOnFailure" type="boolean">
+By default, all runs are emitted to KimTrace regardless of state. You can set this to `true` to only emit runs that fail. Useful if you want to optimize your token usage and are only interested in errors.
+
+Since this is on a per-run basis, it provides you flexibility to emit runs that only fail for some runs but not others.
+
+</ResponseField>
+
+## Decorator
+
+You can use the `@kRun` decorator to wrap your class methods. This will ensure that each time this class method is called, it will be traced.
+
+<CodeGroup>
+
+```typescript Typescript
+import { kRun } from "kimtrace";
+
+class TransactionProcessor {
+    @kRun({runName: "Transaction.process"})
+    public static async processTransaction(params:  {amount: number, type: string, account_id: string}) {
+        // ... code here
+    }
+}
+```
+
+```python Python
+from kimtrace import KRunParams, kRun
+
+class TransactionProcessor:
+    @staticmethod
+    @kRun(KRunParams(run_name="Transaction.process"))
+    async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+        # ... code here
+```
+
+</CodeGroup>
+
+## Wrapper
+
+You can use `kRunWrapper` to wrap your function calls and defer the execution until a later time. At any point you call this wrapped function, it will be traced.
+
+<CodeGroup>
+
+```typescript Typescript
+import { kRunWrapper } from "kimtrace";
+
+async function run() {
+    const wrappedCall = kRunWrapper({runName: "Transaction.process"}, processTransaction);
+    return await wrappedCall({amount: 3, type: "deposit", account_id: "123"});
+}
+
+async function processTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+}
+```
+
+```python Python
+from kimtrace import KRunParams, kRunWrapper
+
+async def main() -> Dict[str, Any]:
+    wrapped_fn = krun_wrapper(
+        KRunParams(run_name="Transaction.process"),
+        process_transaction
+    )
+    return await wrapped_fn(amount=3, type_="deposit", account_id="123")
+
+async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+```
+
+</CodeGroup>
+
+## Wrapped Call
+
+You can use `kRunWrappedCall` to wrap your function and immediately execute it with tracing enabled.
+
+<CodeGroup>
+
+```typescript Typescript
+import { kRunWrappedCall } from "kimtrace";
+
+async function run() {
+    return await kRunWrappedCall(
+        {runName: "Transaction.process"}, 
+        processTransaction,
+        {amount: 3, type: "deposit", account_id: "123"}
+    );
+}
+
+async function processTransaction(params:  {amount: number, type: string, account_id: string}) {
+    // ... code here
+}
+```
+
+```python Python
+from kimtrace import KRunParams, kRunWrappedCall
+
+async def main() -> Dict[str, Any]:
+    return await krun_wrapped_call(
+        KRunParams(run_name="Transaction.process"),
+        process_transaction,
+        amount=3,
+        type_="deposit",
+        account_id="123"
+    )
+
+async def process_transaction(amount: float, type_: str, account_id: str) -> Dict[str, Any]:
+    # ... code here
+```
+
+</CodeGroup>
